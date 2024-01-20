@@ -74,7 +74,7 @@ export const raw = {
     "savescreen" : "\x1b[?47h",
     "restorescreen" : "\x1b[?47l"
 }
-const isInRawEscKey = (str:string) : str is keyof RawEscKey => {
+const isRawEscKey = (str:string) : str is keyof RawEscKey => {
     return str in raw;
 }
 const isRawEscValue = (str:string) => Object.values(raw).includes(str);
@@ -130,10 +130,20 @@ export default class esc {
         process.stdin.write(raw.reset);
         return esc;
     }
+    
     static set(...rawEscs:string[]){
-        for (const r of rawEscs){
-            if (isRawEscValue(r)){
+        for (const _ of rawEscs){
+            const r = _.replaceAll('/',',').replaceAll(';',',').replaceAll(' ,',',').replaceAll(', ',',').replaceAll(' ',',');
+            if (r.includes(',')){
+                for (const sr of r.split(',')){
+                    process.stdin.write(sr); 
+                }
+            }
+            else if (isRawEscValue(r)){
                 process.stdin.write(r);
+            }
+            else if (isRawEscKey(r)){
+                process.stdin.write(raw[r]);
             }
         }
         return esc;
@@ -174,7 +184,7 @@ export default class esc {
                     const styles = inner.split(",");
                     let stylestr = raw.reset;
                     for (const style of styles){
-                        if (isInRawEscKey(style)){
+                        if (isRawEscKey(style)){
                             stylestr += raw[style];
                         }
                     }
@@ -186,7 +196,7 @@ export default class esc {
                     const styles = inner.split(","); 
                     let stylestr = "";
                     for (const style of styles){
-                        if (isInRawEscKey(style)){
+                        if (isRawEscKey(style)){
                             stylestr += raw[style];
                         }
                     }
