@@ -80,14 +80,7 @@ const isInRawEscKey = (str:string) : str is keyof RawEscKey => {
 const isRawEscValue = (str:string) => Object.values(raw).includes(str);
 
 export default class esc {
-    config: EscConfig = {};
-    logStore: string[] = [];
-    constructor(config?:Optional<EscConfig>){
-
-    }
-
-    store(){}
-    static prt(...messages:unknown[]){
+    static wrt(...messages:unknown[]){
         const toPrint:string[] = [];
         for (const message of messages){
             if (typeof message === "string"){
@@ -100,32 +93,17 @@ export default class esc {
             process.stdin.write(p);
         }
         return esc;
+    }
+    static wrtln(...messages:unknown[]){
+        esc.wrt(...messages);
+        process.stdin.write("\n");
+        return esc; 
+    }
+    static prt(...messages:unknown[]){
+        return esc.wrt(...messages).x();
     }
     static prtln(...messages:unknown[]){
-        esc.prt(...messages);
-        process.stdin.write("\n");
-        return esc; 
-    }
-    static prtx(...messages:unknown[]){
-        const toPrint:string[] = [];
-        for (const message of messages){
-            if (typeof message === "string"){
-                toPrint.push(esc.parse(message));
-            } else {
-                toPrint.push(JSON.stringify(message));
-            }
-        }
-        for (const p of toPrint){
-            process.stdin.write(p);
-        }
-        esc.x();
-        return esc;
-    }
-    static prtxln(...messages:unknown[]){
-        esc.prt(...messages);
-        process.stdin.write("\n");
-        esc.x();
-        return esc; 
+        return esc.wrtln(...messages).x();
     }
     static log(...messages:unknown[]){
         const toPrint:unknown[] = [];
