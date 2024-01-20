@@ -1,6 +1,9 @@
-export type RawEsc = typeof rawesc;
-export const rawesc = {
+import { Optional, EscConfig } from "./types";
+
+export type RawEscKey = typeof raw;
+export const raw = {
     "reset" : "\x1b[0m",
+    "x" : "\x1b[0m",
     "bold" : "\x1b[1m",
     "dim" : "\x1b[2m",
     "blink" : "\x1b[5m",
@@ -71,39 +74,64 @@ export const rawesc = {
     "savescreen" : "\x1b[?47h",
     "restorescreen" : "\x1b[?47l"
 }
-const isInRawEsc = (str:string) : str is keyof RawEsc => {
-    return str in rawesc;
+const isInRawEscKey = (str:string) : str is keyof RawEscKey => {
+    return str in raw;
 }
+const isRawEscValue = (str:string) => Object.values(raw).includes(str);
 
-export class raw {
-    prt(){}
-    prtln(){}
+export default class esc {
+    config: EscConfig = {};
+    logStore: string[] = [];
+    constructor(config?:Optional<EscConfig>){
 
+    }
+
+    store(){}
     static prt(...messages:unknown[]){
-        let didPrint = true;
         const toPrint:string[] = [];
         for (const message of messages){
             if (typeof message === "string"){
-                toPrint.push(raw.parse(message));
+                toPrint.push(esc.parse(message));
             } else {
                 toPrint.push(JSON.stringify(message));
             }
         }
         for (const p of toPrint){
-            const didP = process.stdin.write(p);
-            if (!didP) didPrint = false;
+            process.stdin.write(p);
         }
-        return didPrint;
+        return esc;
     }
     static prtln(...messages:unknown[]){
-        const didPrint = raw.prt(...messages);
-        return process.stdin.write("\n") && didPrint;
+        esc.prt(...messages);
+        process.stdin.write("\n");
+        return esc; 
+    }
+    static prtx(...messages:unknown[]){
+        const toPrint:string[] = [];
+        for (const message of messages){
+            if (typeof message === "string"){
+                toPrint.push(esc.parse(message));
+            } else {
+                toPrint.push(JSON.stringify(message));
+            }
+        }
+        for (const p of toPrint){
+            process.stdin.write(p);
+        }
+        esc.x();
+        return esc;
+    }
+    static prtxln(...messages:unknown[]){
+        esc.prt(...messages);
+        process.stdin.write("\n");
+        esc.x();
+        return esc; 
     }
     static log(...messages:unknown[]){
         const toPrint:unknown[] = [];
         for (const message of messages){
             if (typeof message === "string"){
-                toPrint.push(raw.parse(message));
+                toPrint.push(esc.parse(message));
             } else {
                 toPrint.push(message);
             }
@@ -113,14 +141,30 @@ export class raw {
         }
     }
     static startbuf(){
-        
+        process.stdin.write(raw.altbuffer);
+        return esc;
     }
     static endbuf(){
-
+        process.stdin.write(raw.disablealtbuffer);
+        return esc; 
     }
-    static reset(){}
-    
-    static parse(str:string){
+    static x(){
+        process.stdin.write(raw.reset);
+        return esc;
+    }
+    static set(...rawEscs:string[]){
+        for (const r of rawEscs){
+            if (isRawEscValue(r)){
+                process.stdin.write(r);
+            }
+        }
+        return esc;
+    }
+    static setprs(str:string){
+        process.stdin.write(esc.parse(`<${str}>`));
+        return esc;
+    }
+    private static parse(str:string){
         const parser = {
             regex: {
                 tag: /<([^<>]+)>/g,
@@ -138,7 +182,7 @@ export class raw {
                     return str; 
                 }
         
-                str = str.replaceAll("</> ",rawesc.reset).replaceAll("</>",rawesc.reset); 
+                str = str.replaceAll("</> ",raw.reset).replaceAll("</>",raw.reset); 
         
                 const {tags, endTags, tagWhiteSpace} = this.matchStyles(str); 
         
@@ -150,10 +194,10 @@ export class raw {
                 for (const endTag of endTags){
                     const [outer,inner] = endTag;
                     const styles = inner.split(",");
-                    let stylestr = rawesc.reset;
+                    let stylestr = raw.reset;
                     for (const style of styles){
-                        if (isInRawEsc(style)){
-                            stylestr += rawesc[style];
+                        if (isInRawEscKey(style)){
+                            stylestr += raw[style];
                         }
                     }
                     str = str.replace(outer,stylestr);
@@ -164,8 +208,8 @@ export class raw {
                     const styles = inner.split(","); 
                     let stylestr = "";
                     for (const style of styles){
-                        if (isInRawEsc(style)){
-                            stylestr += rawesc[style];
+                        if (isInRawEscKey(style)){
+                            stylestr += raw[style];
                         }
                     }
                     str = str.replace(outer,stylestr); 
