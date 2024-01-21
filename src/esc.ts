@@ -1,8 +1,8 @@
 
 
 import readline from "readline";
-import { isRawEscKey, isRawEscValue, parseTags, raw, parse } from "./raw.ts";
-import { ReadlineOptions } from "./types.ts";
+import { isRawEscKey, isRawEscValue, parseTags, raw, parse } from "./raw";
+import { ReadlineOptions } from "./types";
 
 export default class esc {
     static get cursor(){

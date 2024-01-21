@@ -1,5 +1,5 @@
-import esc from "./src/esc.ts";
-import {raw} from "./src/raw.ts";
+import esc from "./src/esc";
+import {raw} from "./src/raw";
 
 export {
     raw
