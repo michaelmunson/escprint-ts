@@ -1,8 +1,8 @@
 
 
-import { Optional, EscConfig } from "./types";
-import {raw, parse, isRawEscKey, isRawEscValue, RawEscKey} from "./raw";
 import readline from "readline";
+import { isRawEscKey, isRawEscValue, parseTags, raw, parse } from "./raw";
+import { ReadlineOptions } from "./types";
 
 export default class esc {
     static get cursor(){
@@ -93,7 +93,7 @@ export default class esc {
         const toPrint:string[] = [];
         for (const message of messages){
             if (typeof message === "string"){
-                toPrint.push(parse(message));
+                toPrint.push(parseTags(message));
             } else {
                 toPrint.push(JSON.stringify(message));
             }
@@ -118,7 +118,7 @@ export default class esc {
         const toPrint:unknown[] = [];
         for (const message of messages){
             if (typeof message === "string"){
-                toPrint.push(parse(message));
+                toPrint.push(parseTags(message));
             } else {
                 toPrint.push(message);
             }
@@ -185,9 +185,62 @@ export default class esc {
         return esc;
     }
     // readline
-    static read({input=process.stdin, output=process.stdout}) {
-        const rl = readline.createInterface(input, output); 
-        return rl;
+    
+    static read(prompt:string="", readlineOptions?:ReadlineOptions) {
+        const outStyle = readlineOptions?.outStyle ? parse(readlineOptions.outStyle) : raw.x;
+        const query = parseTags(prompt+outStyle);
+        
+        return new Promise((resolve, reject) => {
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout,
+                terminal: true, 
+                ...readlineOptions
+            });
+            rl.question(query, answer => {
+                rl.close();
+                esc.wrt(raw.x);
+                resolve(answer);
+            })
+        });
+    }
+    static readpswd(prompt:string="", readlineOptions?:ReadlineOptions&{outChar?:string}){
+        const outChar = (typeof readlineOptions?.outChar==="string") ? readlineOptions.outChar : "*"; 
+        const outStyle = readlineOptions?.outStyle ? parse(readlineOptions.outStyle) : raw.x;
+        const query = parseTags(prompt+outStyle);
+        return new Promise((resolve, reject) => {
+            const rl:any = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout,
+                terminal: true, 
+                ...readlineOptions
+            });
+            const stdin = process.openStdin();
+            const dataHandler = (char:any) => {
+                char = char + '';
+                switch (char) {
+                case '\n':
+                case '\r':
+                case '\u0004':
+                    stdin.pause();
+                    break;
+                default:
+                    (process as any).stdout.clearLine();
+                    readline.cursorTo(process.stdout, 0);
+                    esc.wrt(raw.x)
+                    process.stdout.write(query + Array(rl.line.length + 1).join(outChar));
+                    break;
+                }
+            };
+            process.stdin.on('data', dataHandler);
+            rl.question(query, (value:any) => {
+                rl.history = rl.history.slice(1);
+                rl.close();
+                process.stdin.removeListener('data', dataHandler);
+                esc.wrt(raw.x);
+                resolve(value);
+            });
+        })
     }
 }
 

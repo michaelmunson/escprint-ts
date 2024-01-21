@@ -1,4 +1,5 @@
 
+
 export type RawEscKey = typeof raw;
 export const raw = {
     "reset" : "\x1b[0m",
@@ -79,69 +80,89 @@ export const isRawEscKey = (str:string) : str is keyof RawEscKey => {
 }
 export const isRawEscValue = (str:string) => Object.values(raw).includes(str);
 
-export const parse = (str:string) => {
-    const parser = {
-        regex: {
-            tag: /<([^<>]+)>/g,
-            endTag: /<\/([^<>]+)>/g,
-            tagWhiteSpace: /\s<([^<>]+)>\s/g
-        },
-        format(str:string){
-            return str
-                    .replaceAll('/',',')
-                    .replaceAll(';',',')
-                    .replaceAll(' ,',',')
-                    .replaceAll(', ',',')
-                    .replaceAll(' ',',')
-                    .replaceAll("</> ",raw.reset)
-                    .replaceAll("</>",raw.reset);
-        },
-        matchStyles(str:string){
-            const tags = [...str.matchAll(this.regex.tag)];
-            const endTags = [...str.matchAll(this.regex.endTag)];
-            const tagWhiteSpace = [...str.matchAll(this.regex.tagWhiteSpace)]; 
-            return {tags, endTags, tagWhiteSpace}; 
-        },
-        handleStyles(str:string){
-            if (typeof str !== "string"){
-                return str; 
-            }
-    
-            str = this.format(str);
-    
-            const {tags, endTags, tagWhiteSpace} = this.matchStyles(str); 
-    
+const parser = {
+    regex: {
+        tag: /<([^<>]+)>/g,
+        endTag: /<\/([^<>]+)>/g,
+        tagWhiteSpace: /\s<([^<>]+)>\s/g
+    },
+    format(str:string){
+        return str
+                .replaceAll('/',',')
+                .replaceAll(';',',')
+                .replaceAll(' ,',',')
+                .replaceAll(', ',',')
+                .replaceAll(' ',',')
+                .replaceAll("</> ",raw.reset)
+                .replaceAll("</>",raw.reset);
+    },
+    matchStyles(str:string){
+        const tags = [...str.matchAll(this.regex.tag)];
+        const endTags = [...str.matchAll(this.regex.endTag)];
+        const tagWhiteSpace = [...str.matchAll(this.regex.tagWhiteSpace)]; 
+        return {tags, endTags, tagWhiteSpace}; 
+    },
+    handleStyles(str:string, format:boolean=false){
+        if (typeof str !== "string"){
+            return str; 
+        }
+
+        // str = this.format(str);
+
+        const {tags, endTags, tagWhiteSpace} = this.matchStyles(str); 
+
+        if (format){
             for (const tws of tagWhiteSpace){
                 const [outer,inner] = tws;
                 str = str.replace(outer,outer.trimEnd());
             }
-            
-            for (const endTag of endTags){
-                const [outer,inner] = endTag;
-                const styles = inner.split(",");
-                let stylestr = raw.reset;
-                for (const style of styles){
-                    if (isRawEscKey(style)){
-                        stylestr += raw[style];
-                    }
-                }
-                str = str.replace(outer,stylestr);
-            }
-    
-            for (const tag of tags){
-                const [outer,inner] = tag; 
-                const styles = inner.split(","); 
-                let stylestr = "";
-                for (const style of styles){
-                    if (isRawEscKey(style)){
-                        stylestr += raw[style];
-                    }
-                }
-                str = str.replace(outer,stylestr); 
-            }
-    
-            return str; 
         }
+        
+        for (const endTag of endTags){
+            const [outer,inner] = endTag;
+            const styles = this.format(inner).split(",");
+            let stylestr = raw.reset;
+            for (const style of styles){
+                if (isRawEscKey(style)){
+                    stylestr += raw[style];
+                }
+            }
+            str = str.replace(outer,stylestr);
+        }
+
+        for (const tag of tags){
+            const [outer,inner] = tag; 
+            const styles = this.format(inner).split(","); 
+            let stylestr = "";
+            for (const style of styles){
+                if (isRawEscKey(style)){
+                    stylestr += raw[style];
+                }
+            }
+            str = str.replace(outer,stylestr); 
+        }
+
+        return str; 
     }
-    return parser.handleStyles(str);
+}
+
+export const parse = (str:string|string[]) : string => {
+    if (Array.isArray(str)){
+        return parse(str.join(","));
+    } else {
+        str = parser.format(str);
+        return str.split(',').map(s => {
+            if (isRawEscKey(s)){
+                return raw[s];
+            } else if (isRawEscValue(s)){
+                return s;
+            } else {
+                return ""
+            }
+        }).join("")
+    }
+}
+
+export const parseTags = (str:string, format:boolean=false) => {
+    return parser.handleStyles(str, format);
 }
