@@ -4,6 +4,24 @@ import readline from "readline";
 import { isRawEscKey, isRawEscValue, parseTags, raw, parse } from "./raw";
 import { ReadlineOptions } from "./types";
 
+class Store extends Array {
+    prt(){
+        for (const p of this){
+            esc.prt(p);
+        }
+        return this;
+    }
+    wrt(){
+        for (const p of this){
+            esc.wrt(p);
+        }
+        return this;
+    }
+    clear(){
+        return this.splice(0, this.length);
+    }
+}
+
 export default class esc {
     static get cursor(){
         return {
@@ -172,6 +190,10 @@ export default class esc {
         process.stdout.write(raw.delall);
         return esc;
     }
+    static clr(){
+        esc.delall();
+        return esc;
+    }
     static delendln(){
         process.stdout.write(raw.delendln);
         return esc;
@@ -184,8 +206,11 @@ export default class esc {
         process.stdout.write(raw.delsaved);
         return esc;
     }
+    // store
+    static createStore(){
+        return new Store();
+    }
     // readline
-    
     static read(prompt:string="", readlineOptions?:ReadlineOptions) {
         const outStyle = readlineOptions?.outStyle ? parse(readlineOptions.outStyle) : raw.x;
         const query = parseTags(prompt+outStyle);
