@@ -4,23 +4,6 @@ import readline from "readline";
 import { isRawEscKey, isRawEscValue, parseTags, raw, parse } from "./raw";
 import { ReadlineOptions } from "./types";
 
-class Store extends Array {
-    prt(){
-        for (const p of this){
-            esc.prt(p);
-        }
-        return this;
-    }
-    wrt(){
-        for (const p of this){
-            esc.wrt(p);
-        }
-        return this;
-    }
-    clear(){
-        return this.splice(0, this.length);
-    }
-}
 
 export default class esc {
     static get cursor(){
@@ -205,10 +188,6 @@ export default class esc {
     static delsaved(){
         process.stdout.write(raw.delsaved);
         return esc;
-    }
-    // store
-    static createStore(){
-        return new Store();
     }
     // readline
     static read(prompt:string="", readlineOptions?:ReadlineOptions) {
