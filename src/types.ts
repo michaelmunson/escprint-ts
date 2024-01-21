@@ -1,4 +1,3 @@
-import readline from "readline";
 
 export type Optional<T> = {
     [P in keyof T]?: T[P]
