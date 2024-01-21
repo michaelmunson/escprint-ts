@@ -1,12 +1,10 @@
-import esc from "./src/esc";
+import {esc} from "./src/esc";
 import {raw} from "./src/raw";
 
 export {
     raw
 }
-
-export default esc;
 // export const raw = rawesc;
 
-// export default esc; 
+export default esc; 
 

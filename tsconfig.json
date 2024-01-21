@@ -10,7 +10,7 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "noEmit": true,
-        // "allowImportingTsExtensions": true,
+        "allowImportingTsExtensions": true,
         "resolveJsonModule": true,
         "noImplicitAny": true,
         "outDir": "./build"
