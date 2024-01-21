@@ -53,17 +53,17 @@ export const raw = {
     "bgCyan" : "\x1b[106m",
     "bgWhite" : "\x1b[107m",
     // erase from cursor until end of screen
-    "del2end" : "\x1b[J",
+    "delend" : "\x1b[J",
     // erase from cursor to beginning of screen
-    "del2beg" : "\x1b[1J",
+    "delbeg" : "\x1b[1J",
     // erase entire screen
     "delall" : "\x1b[2J",
     // erase saved lines
     "delsaved" : "\x1b[3J",
     // erase from cursor to end of line
-    "del2endln" : "\x1b[K0",
+    "delendln" : "\x1b[K0",
     // erase start of line to the cursor
-    "del2startln" : "\x1b[1K",
+    "delbegln" : "\x1b[1K",
     // erase the entire line
     "delln" : "\x1b[2K",
     "nocursor" : "\x1b[?25l",

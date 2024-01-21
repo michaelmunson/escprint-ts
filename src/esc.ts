@@ -9,33 +9,83 @@ export default class esc {
         return {
             up(n=1){
                 process.stdout.write("\x1b["+n+"F");
+                return this
             },
             down(n=1){
-                process.stdout.write("\x1b["+n+"E")
+                process.stdout.write("\x1b["+n+"E");
+                return this
             },
             right(n=1){
-                process.stdout.write("\x1b["+n+"C")
+                process.stdout.write("\x1b["+n+"C");
+                return this
             },
             left(n=1){
-                process.stdout.write("\x1b["+n+"D")
+                process.stdout.write("\x1b["+n+"D");
+                return this
             },
             hide(){
-                process.stdout.write(raw.nocursor)
+                process.stdout.write(raw.nocursor);
+                return this
             },
             show(){
-                process.stdout.write(raw.showcursor)
+                process.stdout.write(raw.showcursor);
+                return this
             },
             save(){
-                process.stdout.write(raw.savecursor)
+                process.stdout.write(raw.savecursor);
+                return this
             },
             load(){
-                process.stdout.write(raw.restorecursor)
+                process.stdout.write(raw.restorecursor);
+                return this
             },
             top(){
                 this.up(process.stdout.rows);
+                return this
             },
             home(){
-                process.stdout.write(raw.home)
+                process.stdout.write(raw.home);
+                return this
+            }
+        }
+    }
+    static get screen(){
+        return {
+            save(){
+                process.stdout.write(raw.savescreen);
+                return esc;
+            },
+            del(){
+                process.stdout.write(raw.delall);
+                return esc;
+            },
+            load(){
+                process.stdout.write(raw.restorescreen);
+                return esc;
+            },
+        }
+    }
+    static get fg(){
+        return {
+            code(code:number){
+                process.stdout.write(`\x1b[38;5;${code}m`);
+                return esc;
+            },
+            rgb(r:number,g:number,b:number){
+                process.stdout.write(`\x1b[38;2;${r};${g};${b}m`);
+                return esc;
+            }
+        }
+    }
+    static get bg(){
+        return {
+            code(code:number){
+                process.stdout.write(`\x1b[48;5;${code}m`);
+                return esc;
+            },
+            rgb(r:number, g:number, b:number){
+                process.stdout.write(`\x1b[48;2;${r};${g};${b}m`);
+                return esc; 
             }
         }
     }
@@ -106,12 +156,37 @@ export default class esc {
         }
         return esc;
     }
+    static delln(){
+        process.stdout.write(raw.delln);
+        return esc;
+    }
+    static delend(){
+        process.stdout.write(raw.delend);
+        return esc;
+    }
+    static delbeg(){
+        process.stdout.write(raw.delbeg);
+        return esc;
+    }
+    static delall(){
+        process.stdout.write(raw.delall);
+        return esc;
+    }
+    static delendln(){
+        process.stdout.write(raw.delendln);
+        return esc;
+    }
+    static delbegln(){
+        process.stdout.write(raw.delbegln);
+        return esc;
+    }
+    static delsaved(){
+        process.stdout.write(raw.delsaved);
+        return esc;
+    }
     // readline
     static read({input=process.stdin, output=process.stdout}) {
         const rl = readline.createInterface(input, output); 
-        
-
-
         return rl;
     }
 }
